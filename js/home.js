@@ -112,7 +112,7 @@ function renderGrid() {
   grid.innerHTML = games.map(g => Components.renderGameCard(g)).join('');
 }
 
-// ── Search binding ────────────────────────
+// ── Search & Reviewer binding ──────────────
 function bindSearch() {
   const searchInput = document.getElementById('navbar-search');
   if (!searchInput) return;
@@ -125,6 +125,21 @@ function bindSearch() {
       renderGrid();
     }, 240);
   });
+}
+
+function bindReviewer() {
+  const revInput = document.getElementById('reviewer-name');
+  if (!revInput) return;
+  revInput.value = DB.getReviewer();
+  revInput.addEventListener('input', (e) => {
+    DB.setReviewer(e.target.value);
+  });
+}
+
+function init() {
+  render();
+  bindSearch();
+  bindReviewer();
 }
 
 window.HomePage = { init, render };

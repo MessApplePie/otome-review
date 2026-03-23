@@ -49,16 +49,10 @@
           <span class="theme-dot" data-t="grey" title="灰色"></span>
         </div>
 
-        <!-- Export -->
-        <button class="btn btn-ghost btn-sm" onclick="DB.exportJSON()" title="导出 JSON 备份">
-          ⬇ 导出
+        <!-- Settings -->
+        <button class="btn btn-ghost btn-sm" onclick="Router.navigate('/settings')" title="存储与同步设置">
+          ⚙ 设置
         </button>
-
-        <!-- Import -->
-        <label class="btn btn-ghost btn-sm" title="导入 JSON 备份" style="cursor:pointer">
-          ⬆ 导入
-          <input type="file" accept=".json,application/json" id="import-input" style="display:none">
-        </label>
 
         <!-- Add game -->
         <button class="btn btn-primary btn-sm" onclick="Router.navigate('/add')">
@@ -77,8 +71,13 @@
       <div class="filter-bar" id="home-filter-bar"></div>
 
       <!-- Stats + grid heading -->
-      <div class="section-heading">
-        <h2>我的游戏库</h2>
+      <div class="section-heading" style="display:flex;justify-content:space-between;align-items:flex-end">
+        <div>
+          <h2 style="display:inline-block;margin-right:12px">我的游戏库</h2>
+          <span style="font-size:0.95rem;color:var(--text-muted)">
+            填写人: <input type="text" id="reviewer-name" placeholder="输入名字..." style="border:none;background:transparent;border-bottom:1px dashed var(--border);color:var(--primary);font-weight:600;width:100px;outline:none;padding-bottom:2px">
+          </span>
+        </div>
         <div id="home-stats" style="display:flex;gap:10px;align-items:center"></div>
       </div>
 
@@ -102,6 +101,13 @@
   </section>
 
   <!-- ══════════════════════════════════════
+     SETTINGS PAGE
+══════════════════════════════════════ -->
+  <section id="page-settings" class="page">
+    <!-- dynamically rendered by settings.js -->
+  </section>
+
+  <!-- ══════════════════════════════════════
      TOAST CONTAINER
 ══════════════════════════════════════ -->
   <div id="toast-container"></div>
@@ -116,10 +122,15 @@
   <script src="js/home.js"></script>
   <script src="js/form.js"></script>
   <script src="js/detail.js"></script>
+  <script src="js/settings.js"></script>
 
   <script>
     /* ── Bootstrap ─────────────────────────── */
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
+
+      // Await DB init before doing anything
+      await DB.init();
+      window.Router.resolve();
 
       // Apply saved theme
       const savedTheme = DB.getTheme();
@@ -140,53 +151,7 @@
         });
       });
 
-      // Import JSON
-      document.getElementById('import-input').addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        try {
-          const text = await file.text();
-          importWithConfirm(text);
-        } catch {
-          Components.showToast('读取文件失败', 'error');
-        }
-        e.target.value = '';
-      });
-
     });
-
-    function importWithConfirm(text) {
-      const overlay = document.createElement('div');
-      overlay.className = 'confirm-overlay';
-      overlay.innerHTML = `
-    <div class="confirm-box">
-      <h3>导入备份</h3>
-      <p>请选择导入方式：<br>
-        <small style="color:var(--text-muted)">「合并」保留现有数据并覆盖同 ID 记录；「替换」清除所有现有数据。</small>
-      </p>
-      <div class="btn-row">
-        <button class="btn btn-ghost" id="import-cancel">取消</button>
-        <button class="btn btn-outline" id="import-merge">合并导入</button>
-        <button class="btn btn-primary" id="import-replace">替换导入</button>
-      </div>
-    </div>`;
-      overlay.querySelector('#import-cancel').onclick = () => overlay.remove();
-      overlay.querySelector('#import-merge').onclick = () => doImport(text, 'merge', overlay);
-      overlay.querySelector('#import-replace').onclick = () => doImport(text, 'replace', overlay);
-      document.body.appendChild(overlay);
-    }
-
-    function doImport(text, mode, overlay) {
-      try {
-        DB.importJSON(text, mode);
-        overlay.remove();
-        Components.showToast('导入成功 ✓');
-        Router.navigate('/');
-        window.HomePage?.render();
-      } catch (e) {
-        Components.showToast('导入失败：' + e.message, 'error');
-      }
-    }
   </script>
 
 </body>

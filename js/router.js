@@ -9,6 +9,7 @@ const ROUTES = [
   { pattern: /^\/add$/,          page: 'page-form',   init: () => window.FormPage?.init(null) },
   { pattern: /^\/edit\/(.+)$/,   page: 'page-form',   init: (m) => window.FormPage?.init(m[1]) },
   { pattern: /^\/game\/(.+)$/,   page: 'page-detail', init: (m) => window.DetailPage?.init(m[1]) },
+  { pattern: /^\/settings$/,     page: 'page-settings', init: () => window.SettingsPage?.render() },
 ];
 
 function getHash() {
@@ -48,6 +49,5 @@ function showPage(id) {
 }
 
 window.addEventListener('hashchange', resolve);
-window.addEventListener('DOMContentLoaded', resolve);
 
 window.Router = { navigate, resolve };

@@ -663,7 +663,7 @@
   }
 
   // ── Save ──────────────────────────────────
-  function _save() {
+  async function _save() {
     _collectAllInputs();
 
     if (!_game.title.trim()) {
@@ -692,12 +692,13 @@
       after: imp.after,
     }));
 
-    const saved = DB.saveGame(_game);
-    if (saved) {
+    try {
+      const saved = await DB.saveGame(_game);
       Components.showToast(_editId ? '游戏已更新 ✓' : '游戏已保存 ✓');
       Router.navigate('/game/' + saved.id);
-    } else {
-      Components.showToast('保存失败，存储空间可能不足', 'error');
+    } catch(e) {
+      console.error(e);
+      Components.showToast('保存失败，存储空间可能存在异常', 'error');
     }
   }
 

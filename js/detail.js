@@ -104,7 +104,7 @@
     <div style="margin-top:32px">
       <div class="section-heading"><h2>✨ 角色印象 (初印象/现印象)</h2></div>
       <div style="display:flex;flex-direction:column;gap:14px">
-        ${game.impressions.map(imp => Components.renderImpressionCard(imp)).join('')}
+        ${Components.renderImpressionTable(game.impressions)}
       </div>
     </div>` : ''}
 

@@ -251,8 +251,8 @@ function confirmDelete(id) {
       </div>
     </div>`;
   overlay.querySelector('#confirm-cancel').onclick = () => overlay.remove();
-  overlay.querySelector('#confirm-ok').onclick = () => {
-    DB.deleteGame(id);
+  overlay.querySelector('#confirm-ok').onclick = async () => {
+    await DB.deleteGame(id);
     overlay.remove();
     showToast('已删除');
     if (location.hash.includes('/game/') || location.hash.includes('/edit/')) {
