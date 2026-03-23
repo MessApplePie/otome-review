@@ -96,8 +96,8 @@ const RATING_LABELS = [
   ['voice',      '声优'],
   ['emotion',    '情感共鸣'],
 ];
-function renderRatingBars(ratings = {}) {
-  return RATING_LABELS.map(([key, label]) => {
+function renderRatingBars(ratings = {}, customRatings = []) {
+  const defaultBars = RATING_LABELS.map(([key, label]) => {
     const val = ratings[key] || 0;
     return `
     <div class="rating-bar-row">
@@ -108,6 +108,20 @@ function renderRatingBars(ratings = {}) {
       <span class="val">${val || '-'}</span>
     </div>`;
   }).join('');
+
+  const customBars = customRatings.map(cr => {
+    const val = cr.rating || 0;
+    return `
+    <div class="rating-bar-row">
+      <span class="label">${escHtml(cr.label)}</span>
+      <div class="rating-bar-bg">
+        <div class="rating-bar-fill" style="width:${val * 20}%"></div>
+      </div>
+      <span class="val">${val || '-'}</span>
+    </div>`;
+  }).join('');
+
+  return defaultBars + customBars;
 }
 
 // ── Gallery strip ─────────────────────────

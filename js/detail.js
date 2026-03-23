@@ -66,7 +66,7 @@ function render(game) {
         <hr class="divider" style="margin:16px 0">
 
         <div class="rating-bars">
-          ${Components.renderRatingBars(game.ratings || {})}
+          ${Components.renderRatingBars(game.ratings || {}, game.customRatings || [])}
         </div>
       </div>
     </div>
