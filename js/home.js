@@ -27,36 +27,33 @@ function renderFilterBar() {
 
   const tags = DB.getAllTags();
 
-  let html = `<span class="filter-bar__label">进度：</span>`;
-  html += `<span class="tag${!_activeProgress ? ' active' : ''}" data-filter-progress="">全部</span>`;
-  PROGRESS_OPTIONS.forEach(p => {
-    html += `<span class="tag${_activeProgress === p ? ' active' : ''}" data-filter-progress="${p}">${p}</span>`;
-  });
+  let html = `<div style="display:flex; gap:16px; align-items:center;">`;
 
-  if (tags.length) {
-    html += `<span class="filter-bar__label" style="margin-left:10px">标签：</span>`;
-    html += `<span class="tag${!_activeTag ? ' active' : ''}" data-filter-tag="">全部</span>`;
-    tags.forEach(t => {
-      html += `<span class="tag${_activeTag === t ? ' active' : ''}" data-filter-tag="${Components.escHtml(t)}">${Components.escHtml(t)}</span>`;
+  // Progress Select
+  html += `<div style="display:flex; align-items:center; gap:8px;">`;
+  html += `<span class="filter-bar__label">进度：</span>`;
+  html += `<select id="filter-progress" class="form-select" style="min-width:110px;">`;
+  html += `<option value="">全部</option>`;
+  PROGRESS_OPTIONS.forEach(p => {
+    html += `<option value="${p}" ${p === _activeProgress ? 'selected' : ''}>${p}</option>`;
+  });
+  html += `</select></div>`;
+
+  // Tags Select removed as requested
+  
+  html += `</div>`;
+  bar.innerHTML = html;
+
+  const progSelect = bar.querySelector('#filter-progress');
+  if (progSelect) {
+    progSelect.addEventListener('change', (e) => {
+      _activeProgress = e.target.value;
+      renderFilterBar();
+      renderGrid();
     });
   }
 
-  bar.innerHTML = html;
-
-  bar.querySelectorAll('[data-filter-progress]').forEach(el => {
-    el.addEventListener('click', () => {
-      _activeProgress = el.dataset.filterProgress;
-      renderFilterBar();
-      renderGrid();
-    });
-  });
-  bar.querySelectorAll('[data-filter-tag]').forEach(el => {
-    el.addEventListener('click', () => {
-      _activeTag = el.dataset.filterTag;
-      renderFilterBar();
-      renderGrid();
-    });
-  });
+  // tag select listener removed
 }
 
 // ── Grid ──────────────────────────────────

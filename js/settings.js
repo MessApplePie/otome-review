@@ -81,6 +81,14 @@ window.SettingsPage = (function () {
     }
   }
 
+  function handleSiteNameChange(e) {
+    const val = e.target.value.trim() || '很高兴你也爱玩日乙并有自己的见解';
+    DB.setWebsiteName(val);
+    document.title = val;
+    const logoEl = document.querySelector('.navbar__logo');
+    if (logoEl) logoEl.innerHTML = `${Components.escHtml(val)}<span>✿</span>`;
+  }
+
   function render() {
     const page = document.getElementById('page-settings');
     if (!page) return;
@@ -92,6 +100,16 @@ window.SettingsPage = (function () {
         <div style="display:flex;align-items:center;gap:14px;margin-bottom:24px">
           <button class="btn btn-ghost btn-sm" onclick="Router.navigate('/')">← 返回</button>
           <h1 style="font-size:1.3rem">存储与同步设置</h1>
+        </div>
+
+        <!-- 网站配置 -->
+        <div class="form-section">
+          <div class="form-section-title">🌐 站点设置</div>
+          <div class="form-group" style="max-width: 400px;">
+            <label class="form-label" style="margin-bottom: 6px;">网站标题名称</label>
+            <input type="text" value="${Components.escHtml(DB.getWebsiteName())}" placeholder="输入您的网站名称..." onchange="SettingsPage.handleSiteNameChange(event)">
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 8px;">更改后立即生效，并与其他数据一起同步至您的本地文件夹中。</p>
+          </div>
         </div>
 
         <!-- 浏览器本地存储状态 -->
@@ -154,5 +172,5 @@ window.SettingsPage = (function () {
     `;
   }
 
-  return { render, handleSelectFolder, handleExport, handleImport, handleFallbackExport, handleFallbackImport, handleClearDB };
+  return { render, handleSelectFolder, handleExport, handleImport, handleFallbackExport, handleFallbackImport, handleClearDB, handleSiteNameChange };
 })();

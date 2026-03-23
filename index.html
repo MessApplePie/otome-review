@@ -132,6 +132,12 @@
       await DB.init();
       window.Router.resolve();
 
+      // Set website name dynamically
+      const siteName = DB.getWebsiteName();
+      document.title = siteName;
+      const logoEl = document.querySelector('.navbar__logo');
+      if (logoEl) logoEl.innerHTML = `${Components.escHtml(siteName)}<span>✿</span>`;
+
       // Apply saved theme
       const savedTheme = DB.getTheme();
       document.documentElement.dataset.theme = savedTheme;

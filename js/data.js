@@ -7,6 +7,7 @@ const DB_NAME = 'OtomeJournalDB';
 const DB_VERSION = 1;
 const THEME_KEY = 'otome_theme';
 const REVIEWER_KEY = 'otome_reviewer';
+const WEBSITE_NAME_KEY = 'otome_website_name';
 
 let db = null;
 let _games = [];
@@ -166,7 +167,11 @@ async function exportToFolder(dirHandle) {
   // Save settings at root
   const settingsFileHandle = await dirHandle.getFileHandle('settings.json', { create: true });
   const sWritable = await settingsFileHandle.createWritable();
-  await sWritable.write(JSON.stringify({ theme: getTheme(), reviewer: getReviewer() }, null, 2));
+  await sWritable.write(JSON.stringify({
+    theme: getTheme(),
+    reviewer: getReviewer(),
+    websiteName: getWebsiteName()
+  }, null, 2));
   await sWritable.close();
 
   const gamesDir = await dirHandle.getDirectoryHandle('games', { create: true });
@@ -275,6 +280,7 @@ async function importFromFolder(dirHandle) {
       const sData = JSON.parse(await sFile.text());
       if (sData.theme) setTheme(sData.theme);
       if (sData.reviewer) setReviewer(sData.reviewer);
+      if (sData.websiteName) setWebsiteName(sData.websiteName);
     } catch(e) {}
 
     const gamesDir = await dirHandle.getDirectoryHandle('games').catch(() => null);
@@ -456,6 +462,9 @@ function setTheme(theme)   { localStorage.setItem(THEME_KEY, theme); }
 function getReviewer()     { return localStorage.getItem(REVIEWER_KEY) || ''; }
 function setReviewer(name) { localStorage.setItem(REVIEWER_KEY, name); }
 
+function getWebsiteName()     { return localStorage.getItem(WEBSITE_NAME_KEY) || '很高兴你也爱玩日乙并有自己的见解'; }
+function setWebsiteName(name) { localStorage.setItem(WEBSITE_NAME_KEY, name); }
+
 // ── Exports ───────────────────────────────
 window.DB = {
   init,
@@ -466,5 +475,6 @@ window.DB = {
   exportJSONFallback, importJSONFallback,
   getTheme, setTheme,
   getReviewer, setReviewer,
+  getWebsiteName, setWebsiteName,
   genId,
 };
