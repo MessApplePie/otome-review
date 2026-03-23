@@ -157,16 +157,19 @@ async function clearAllGames() {
 }
 
 // ── File System Access API Export ────────
-async function exportToFolder(dirHandle) {
-  // 1. Create Structure
-  const dataDir = await dirHandle.getDirectoryHandle('data', { create: true });
-  const imgDir = await dirHandle.getDirectoryHandle('images', { create: true });
-  const coversDir = await imgDir.getDirectoryHandle('game-covers', { create: true });
-  const gameCgsDir = await imgDir.getDirectoryHandle('game-cg', { create: true });
-  const charPortraitsDir = await imgDir.getDirectoryHandle('character-portraits', { create: true });
-  const charCgsDir = await imgDir.getDirectoryHandle('character-cg', { create: true });
+function getSafeName(str) {
+  if (!str) return 'unknown';
+  return str.replace(/[<>:"/\\|?*]+/g, '_').trim() || 'unnamed';
+}
 
-  // Deep clone to strip payloads safely
+async function exportToFolder(dirHandle) {
+  // Save settings at root
+  const settingsFileHandle = await dirHandle.getFileHandle('settings.json', { create: true });
+  const sWritable = await settingsFileHandle.createWritable();
+  await sWritable.write(JSON.stringify({ theme: getTheme(), reviewer: getReviewer() }, null, 2));
+  await sWritable.close();
+
+  const gamesDir = await dirHandle.getDirectoryHandle('games', { create: true });
   const exportGames = JSON.parse(JSON.stringify(_games));
 
   async function writeImage(base64Data, namePrefix, dir, mimeTypeExt) {
@@ -179,128 +182,179 @@ async function exportToFolder(dirHandle) {
     const writable = await fileHandle.createWritable();
     await writable.write(blob);
     await writable.close();
-    return filename; // Return relative filename for linking
+    return filename; // Return relative filename
   }
 
-  // 2. Iterate and write images, mutate export objects
   for (let g of exportGames) {
+    const gameFolderName = `${getSafeName(g.title)}_${g.id}`;
+    const gameDir = await gamesDir.getDirectoryHandle(gameFolderName, { create: true });
+
+    // Covers
     if (g.cover && g.cover.startsWith('data:')) {
-      g.coverPath = await writeImage(g.cover, `${g.id}_cover`, coversDir, 'png');
-      delete g.cover; // Remove heavy string
+      const coversDir = await gameDir.getDirectoryHandle('covers', { create: true });
+      g.coverPath = 'covers/' + await writeImage(g.cover, 'cover', coversDir, 'png');
+      delete g.cover;
     }
     
-    if (g.cgs) {
+    // Game CGs
+    if (g.cgs && g.cgs.length > 0) {
+      const cgDir = await gameDir.getDirectoryHandle('gameCG', { create: true });
       for (let i = 0; i < g.cgs.length; i++) {
         const cg = g.cgs[i];
         if (cg.src && cg.src.startsWith('data:')) {
-           cg.srcPath = await writeImage(cg.src, `${g.id}_cg_${cg.id}`, gameCgsDir, 'png');
+           cg.srcPath = 'gameCG/' + await writeImage(cg.src, cg.id, cgDir, 'png');
            delete cg.src;
         }
       }
     }
 
-    if (g.characters) {
-      for (let c of g.characters) {
-        if (c.portrait && c.portrait.startsWith('data:')) {
-          c.portraitPath = await writeImage(c.portrait, `${g.id}_char_${c.id}_portrait`, charPortraitsDir, 'png');
-          delete c.portrait;
-        }
-        if (c.cgs) {
-          for (let i = 0; i < c.cgs.length; i++) {
-            const ccg = c.cgs[i];
-            if (ccg.src && ccg.src.startsWith('data:')) {
-               ccg.srcPath = await writeImage(ccg.src, `${g.id}_char_${c.id}_cg_${ccg.id}`, charCgsDir, 'png');
-               delete ccg.src;
-            }
-          }
-        }
-      }
-    }
-
-    if (g.impressions) {
+    // Impressions 
+    if (g.impressions && g.impressions.length > 0) {
+      let impPortraitDir = null;
       for (let imp of g.impressions) {
         if (imp.portrait && imp.portrait.startsWith('data:')) {
-          imp.portraitPath = await writeImage(imp.portrait, `${g.id}_imp_${imp.id}_portrait`, charPortraitsDir, 'png');
+          if (!impPortraitDir) impPortraitDir = await gameDir.getDirectoryHandle('impressions', { create: true });
+          imp.portraitPath = 'impressions/' + await writeImage(imp.portrait, `imp_${imp.id}`, impPortraitDir, 'png');
           delete imp.portrait;
         }
       }
     }
+
+    // Characters extraction
+    const charArray = g.characters || [];
+    delete g.characters;
+
+    if (charArray.length > 0) {
+      const charsDir = await gameDir.getDirectoryHandle('characters', { create: true });
+      for (let c of charArray) {
+        const charFolderName = `${getSafeName(c.name)}_${c.id}`;
+        const charDir = await charsDir.getDirectoryHandle(charFolderName, { create: true });
+
+        // Portrait
+        if (c.portrait && c.portrait.startsWith('data:')) {
+          const portraitDir = await charDir.getDirectoryHandle('portrait', { create: true });
+          c.portraitPath = 'portrait/' + await writeImage(c.portrait, 'portrait', portraitDir, 'png');
+          delete c.portrait;
+        }
+        
+        // Character CGs
+        if (c.cgs && c.cgs.length > 0) {
+          const charCgDir = await charDir.getDirectoryHandle('cg', { create: true });
+          for (let i = 0; i < c.cgs.length; i++) {
+            const ccg = c.cgs[i];
+            if (ccg.src && ccg.src.startsWith('data:')) {
+               ccg.srcPath = 'cg/' + await writeImage(ccg.src, ccg.id, charCgDir, 'png');
+               delete ccg.src;
+            }
+          }
+        }
+
+        const charFileHandle = await charDir.getFileHandle('character.json', { create: true });
+        const cWritable = await charFileHandle.createWritable();
+        await cWritable.write(JSON.stringify(c, null, 2));
+        await cWritable.close();
+      }
+    }
+
+    // Game JSON
+    const gameFileHandle = await gameDir.getFileHandle('game.json', { create: true });
+    const gWritable = await gameFileHandle.createWritable();
+    await gWritable.write(JSON.stringify(g, null, 2));
+    await gWritable.close();
   }
-
-  // 3. Write structured JSON
-  const gamesFileHandle = await dataDir.getFileHandle('games.json', { create: true });
-  const gWritable = await gamesFileHandle.createWritable();
-  await gWritable.write(JSON.stringify({ version: 2, games: exportGames }, null, 2));
-  await gWritable.close();
-
-  const settingsFileHandle = await dataDir.getFileHandle('settings.json', { create: true });
-  const sWritable = await settingsFileHandle.createWritable();
-  await sWritable.write(JSON.stringify({ theme: getTheme(), reviewer: getReviewer() }, null, 2));
-  await sWritable.close();
 }
 
 async function importFromFolder(dirHandle) {
   try {
-    const dataDir = await dirHandle.getDirectoryHandle('data');
-    const gamesFileHandle = await dataDir.getFileHandle('games.json');
-    const file = await gamesFileHandle.getFile();
-    const text = await file.text();
-    const data = JSON.parse(text);
-    const importedGames = data.games || [];
+    const importedGames = [];
 
-    const imgDir = await dirHandle.getDirectoryHandle('images').catch(() => null);
+    // Attempt settings
+    try {
+      const sFileHandle = await dirHandle.getFileHandle('settings.json');
+      const sFile = await sFileHandle.getFile();
+      const sData = JSON.parse(await sFile.text());
+      if (sData.theme) setTheme(sData.theme);
+      if (sData.reviewer) setReviewer(sData.reviewer);
+    } catch(e) {}
 
-    async function loadImgDataURL(subDirName, filename) {
-      if (!imgDir || !filename) return '';
+    const gamesDir = await dirHandle.getDirectoryHandle('games').catch(() => null);
+    if (!gamesDir) return true;
+
+    async function loadImgDataURL(subDirPath, parentDir) {
+       if (!subDirPath) return '';
+       try {
+         const parts = subDirPath.split('/');
+         const filename = parts.pop();
+         let currentDir = parentDir;
+         for (const p of parts) {
+           currentDir = await currentDir.getDirectoryHandle(p);
+         }
+         const fHandle = await currentDir.getFileHandle(filename);
+         const imgFile = await fHandle.getFile();
+         return await blobToDataURL(imgFile);
+       } catch(e) { return ''; }
+    }
+
+    for await (const [gameFolderName, gameDirHandle] of gamesDir.entries()) {
+      if (gameDirHandle.kind !== 'directory') continue;
+      
       try {
-        const subDir = await imgDir.getDirectoryHandle(subDirName);
-        const fHandle = await subDir.getFileHandle(filename);
-        const imgFile = await fHandle.getFile();
-        return await blobToDataURL(imgFile);
-      } catch(e) { return ''; }
+        const gameFileHandle = await gameDirHandle.getFileHandle('game.json');
+        const gameFile = await gameFileHandle.getFile();
+        const g = JSON.parse(await gameFile.text());
+
+        if (g.coverPath) {
+          g.cover = await loadImgDataURL(g.coverPath, gameDirHandle);
+          delete g.coverPath;
+        }
+        if (g.cgs) {
+          for (let cg of g.cgs) {
+            if (cg.srcPath) {
+              cg.src = await loadImgDataURL(cg.srcPath, gameDirHandle);
+              delete cg.srcPath;
+            }
+          }
+        }
+        if (g.impressions) {
+          for (let imp of g.impressions) {
+            if (imp.portraitPath) {
+              imp.portrait = await loadImgDataURL(imp.portraitPath, gameDirHandle);
+              delete imp.portraitPath;
+            }
+          }
+        }
+
+        g.characters = [];
+        const charsDir = await gameDirHandle.getDirectoryHandle('characters').catch(()=>null);
+        if (charsDir) {
+          for await (const [charFolderName, charDirHandle] of charsDir.entries()) {
+            if (charDirHandle.kind !== 'directory') continue;
+            try {
+              const charFileHandle = await charDirHandle.getFileHandle('character.json');
+              const charFile = await charFileHandle.getFile();
+              const c = JSON.parse(await charFile.text());
+
+              if (c.portraitPath) {
+                c.portrait = await loadImgDataURL(c.portraitPath, charDirHandle);
+                delete c.portraitPath;
+              }
+              if (c.cgs) {
+                 for (let ccg of c.cgs) {
+                   if (ccg.srcPath) {
+                      ccg.src = await loadImgDataURL(ccg.srcPath, charDirHandle);
+                      delete ccg.srcPath;
+                   }
+                 }
+              }
+              g.characters.push(c);
+            } catch(e) { console.error('Char import failed', e); }
+          }
+        }
+
+        importedGames.push(g);
+      } catch(e) { console.error('Game import failed', e); }
     }
 
-    // Reconstruct base64 payloads
-    for (let g of importedGames) {
-      if (g.coverPath) {
-        g.cover = await loadImgDataURL('game-covers', g.coverPath);
-        delete g.coverPath;
-      }
-      if (g.cgs) {
-        for (let cg of g.cgs) {
-          if (cg.srcPath) {
-            cg.src = await loadImgDataURL('game-cg', cg.srcPath);
-            delete cg.srcPath;
-          }
-        }
-      }
-      if (g.characters) {
-        for (let c of g.characters) {
-          if (c.portraitPath) {
-            c.portrait = await loadImgDataURL('character-portraits', c.portraitPath);
-            delete c.portraitPath;
-          }
-          if (c.cgs) {
-             for (let ccg of c.cgs) {
-               if (ccg.srcPath) {
-                  ccg.src = await loadImgDataURL('character-cg', ccg.srcPath);
-                  delete ccg.srcPath;
-               }
-             }
-          }
-        }
-      }
-      if (g.impressions) {
-        for (let imp of g.impressions) {
-          if (imp.portraitPath) {
-            imp.portrait = await loadImgDataURL('character-portraits', imp.portraitPath);
-            delete imp.portraitPath;
-          }
-        }
-      }
-    }
-
-    // Write all to IDB
     await bulkImportGames(importedGames);
     return true;
   } catch(e) {

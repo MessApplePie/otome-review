@@ -70,9 +70,9 @@
               <input type="number" id="f-date" min="1980" max="2099" step="1" placeholder="例如：2023" value="${_game.releaseDate || ''}">
             </div>
             <div class="form-group">
-              <label class="form-label">游玩进度</label>
+              <label class="form-label">游戏进度</label>
               <select id="f-progress">
-                ${['未开始', '游玩中', '已通关', '已全收'].map(p =>
+                ${['未开始', '游戏中', '自推全收集', 'HE全收集', '自推HE全收集', '全收集'].map(p =>
       `<option value="${p}"${_game.progress === p ? ' selected' : ''}>${p}</option>`
     ).join('')}
               </select>
@@ -540,7 +540,7 @@
       container.innerHTML = `<p class="text-muted text-sm" style="text-align:center;padding:12px 0">暂无印象记录，点击下方按钮添加</p>`;
       return;
     }
-    
+
     container.innerHTML = `
     <table class="impression-table">
       <thead>
@@ -696,7 +696,7 @@
       const saved = await DB.saveGame(_game);
       Components.showToast(_editId ? '游戏已更新 ✓' : '游戏已保存 ✓');
       Router.navigate('/game/' + saved.id);
-    } catch(e) {
+    } catch (e) {
       console.error(e);
       Components.showToast('保存失败，存储空间可能存在异常', 'error');
     }
