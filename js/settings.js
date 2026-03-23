@@ -116,7 +116,7 @@ window.SettingsPage = (function () {
         <div class="form-section">
           <div class="form-section-title">📦 浏览器本地存储</div>
           <p style="font-size:.9rem;color:var(--text);line-height:1.6">
-            你的所有更改都会自动保存在浏览器的 <strong>IndexedDB</strong> 中。即使你关闭网页，下次打开时数据依然保留。<br>
+            你的所有更改都会自动保存在浏览器中。即使你关闭网页，下次打开时数据依然保留。<br>
             <span style="color:var(--primary);font-weight:600">这是主要的运作方式，自动保存正常运行中。</span>
           </p>
           <button class="btn btn-ghost btn-sm" style="margin-top:12px;color:#cc6c6a" onclick="SettingsPage.handleClearDB()">⚠️ 危险：清空浏览器数据</button>
