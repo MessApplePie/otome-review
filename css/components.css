@@ -516,6 +516,43 @@ select { appearance: none; cursor: pointer; }
 .progress--已全收 { background: #faefd4; color: #a87618; }
 
 /* ══════════════════════════════════════════
+   IMPRESSION TABLE
+══════════════════════════════════════════ */
+.impression-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  background: var(--surface);
+}
+.impression-table th, .impression-table td {
+  border: 1px solid var(--border);
+  padding: 10px 14px;
+  vertical-align: top;
+}
+.impression-table th {
+  background: var(--surface-alt);
+  font-weight: 600;
+  text-align: left;
+  color: var(--text-muted);
+}
+.impression-table input[type="text"],
+.impression-table textarea {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 4px;
+  outline: none;
+  resize: vertical;
+  color: var(--text);
+  font-family: inherit;
+}
+.impression-table input[type="text"]:focus,
+.impression-table textarea:focus {
+  background: var(--surface-alt);
+  border-radius: var(--radius-sm);
+}
+
+/* ══════════════════════════════════════════
    RESPONSIVE
 ══════════════════════════════════════════ */
 @media (max-width: 768px) {

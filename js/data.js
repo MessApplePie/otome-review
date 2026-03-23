@@ -75,6 +75,7 @@ function newGame(overrides = {}) {
     review: '',
     cgs: [],
     characters: [],
+    impressions: [],
     tags: [],
     createdAt: 0,
     updatedAt: 0,
@@ -92,6 +93,17 @@ function newCharacter(overrides = {}) {
     shortComment: '',
     fullReview: '',
     cgs: [],
+    ...overrides
+  };
+}
+
+function newImpression(overrides = {}) {
+  return {
+    id: genId(),
+    name: '',
+    portrait: '',
+    before: '',
+    after: '',
     ...overrides
   };
 }
@@ -147,7 +159,7 @@ function setTheme(theme)   { localStorage.setItem(THEME_KEY, theme); }
 // ── Exports ───────────────────────────────
 window.DB = {
   getAllGames, getGame, saveGame, deleteGame,
-  newGame, newCharacter, newCGImage,
+  newGame, newCharacter, newCGImage, newImpression,
   getAllTags,
   exportJSON, importJSON,
   getTheme, setTheme,

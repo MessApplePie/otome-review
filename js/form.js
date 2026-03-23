@@ -9,6 +9,7 @@
   let _game = null;   // current working copy
   let _charForms = [];     // array of char form state objects
   let _customRatings = [];
+  let _impressions = [];   // array of impression state objects
 
   // ── Init ──────────────────────────────────
   function init(id) {
@@ -22,6 +23,7 @@
       _collapsed: true,
     }));
     _customRatings = (_game.customRatings || []).map(cr => ({ ...cr }));
+    _impressions = (_game.impressions || []).map(imp => ({ ...imp, _collapsed: false }));
 
     renderPage();
   }
@@ -122,6 +124,13 @@
       <button class="btn btn-outline btn-sm mt-md" onclick="FormPage._addChar()">＋ 添加角色</button>
     </div>
 
+    <!-- 角色印象 -->
+    <div class="form-section">
+      <div class="form-section-title">✨ 角色印象</div>
+      <div id="impression-forms-container"></div>
+      <button class="btn btn-outline btn-sm mt-md" onclick="FormPage._addImpression()">＋ 添加印象</button>
+    </div>
+
     <!-- Spacer for sticky footer -->
     <div style="height:20px"></div>
   </div>
@@ -137,6 +146,7 @@
     renderTagList();
     renderGameCGStrip();
     renderCharForms();
+    renderImpressions();
     renderCustomRatings();
     bindRatingInputs();
     bindTagInput();
@@ -522,7 +532,99 @@
     renderCharForms();
   }
 
+  // ── Impression forms ────────────────────
+  function renderImpressions() {
+    const container = document.getElementById('impression-forms-container');
+    if (!container) return;
+    if (!_impressions.length) {
+      container.innerHTML = `<p class="text-muted text-sm" style="text-align:center;padding:12px 0">暂无印象记录，点击下方按钮添加</p>`;
+      return;
+    }
+    
+    container.innerHTML = `
+    <table class="impression-table">
+      <thead>
+        <tr>
+          <th style="width:20%;text-align:center;">角色</th>
+          <th style="width:38%">before</th>
+          <th style="width:38%">after</th>
+          <th style="width:4%;text-align:center"></th>
+        </tr>
+      </thead>
+      <tbody>
+        ${_impressions.map((imp, i) => impressionFormRow(imp, i)).join('')}
+      </tbody>
+    </table>`;
+
+    _impressions.forEach((_, i) => _renderImpressionPortrait(i));
+  }
+
+  function impressionFormRow(imp, i) {
+    return `
+    <tr id="imp-row-${i}">
+      <td style="text-align:center;vertical-align:middle;">
+        <div id="imp-portrait-wrap-${i}" style="display:flex;justify-content:center;"></div>
+      </td>
+      <td>
+        <textarea id="imp-before-${i}" rows="2" placeholder="初印象..." oninput="FormPage._syncImpressionInputs(${i})">${Components.escHtml(imp.before)}</textarea>
+      </td>
+      <td>
+        <textarea id="imp-after-${i}" rows="2" placeholder="现印象..." oninput="FormPage._syncImpressionInputs(${i})">${Components.escHtml(imp.after)}</textarea>
+      </td>
+      <td style="text-align:center;vertical-align:middle;">
+        <button class="btn btn-ghost btn-sm" style="padding:4px 8px" onclick="FormPage._removeImpression(${i})">✕</button>
+      </td>
+    </tr>`;
+  }
+
+  function _renderImpressionPortrait(i) {
+    const wrap = document.getElementById(`imp-portrait-wrap-${i}`);
+    if (!wrap) return;
+    const imp = _impressions[i];
+    if (imp.portrait) {
+      wrap.innerHTML = `
+      <div style="position:relative;display:inline-block">
+        <img class="char-portrait-preview" id="imp-portrait-img-${i}" src="${imp.portrait}">
+        <button class="remove-img" onclick="FormPage._removeImpressionPortrait(${i})">✕</button>
+      </div>
+      <input type="file" accept="image/*" id="imp-portrait-input-${i}" style="display:none">`;
+      wrap.querySelector(`#imp-portrait-img-${i}`).onclick = () => wrap.querySelector(`#imp-portrait-input-${i}`).click();
+    } else {
+      wrap.innerHTML = `
+      <label class="char-portrait-placeholder" for="imp-portrait-input-${i}">👤</label>
+      <input type="file" accept="image/*" id="imp-portrait-input-${i}" style="display:none">`;
+    }
+    wrap.querySelector(`#imp-portrait-input-${i}`).addEventListener('change', async (e) => {
+      const file = e.target.files[0]; if (!file) return;
+      _impressions[i].portrait = await Components.readImageFile(file);
+      _renderImpressionPortrait(i);
+    });
+  }
+
+  function _removeImpressionPortrait(i) {
+    _impressions[i].portrait = '';
+    _renderImpressionPortrait(i);
+  }
+
+  function _addImpression() {
+    _collectAllInputs();
+    const imp = { ...DB.newImpression(), _collapsed: false };
+    _impressions.push(imp);
+    renderImpressions();
+  }
+
+  function _removeImpression(i) {
+    _impressions.splice(i, 1);
+    renderImpressions();
+  }
+
   // ── Collect / sync ────────────────────────
+  function _syncImpressionInputs(i) {
+    const imp = _impressions[i];
+    imp.before = document.getElementById(`imp-before-${i}`)?.value || '';
+    imp.after = document.getElementById(`imp-after-${i}`)?.value || '';
+  }
+
   function _syncCharInputs(i) {
     const c = _charForms[i];
     c.name = document.getElementById(`char-name-${i}`)?.value || '';
@@ -555,6 +657,9 @@
 
     // Characters
     _charForms.forEach((_, i) => _syncCharInputs(i));
+
+    // Impressions
+    _impressions.forEach((_, i) => _syncImpressionInputs(i));
   }
 
   // ── Save ──────────────────────────────────
@@ -578,6 +683,15 @@
       cgs: c._cgs || [],
     }));
 
+    // Build impressions
+    _game.impressions = _impressions.map(imp => ({
+      id: imp.id || DB.genId(),
+      name: imp.name,
+      portrait: imp.portrait || '',
+      before: imp.before,
+      after: imp.after,
+    }));
+
     const saved = DB.saveGame(_game);
     if (saved) {
       Components.showToast(_editId ? '游戏已更新 ✓' : '游戏已保存 ✓');
@@ -591,8 +705,9 @@
     init,
     _save, _addTag, _addChar, _removeChar,
     _toggleCharForm, _addCharTag,
-    _removeCover, _removeCharPortrait,
+    _removeCover, _removeCharPortrait, _removeImpressionPortrait,
     _addCustomRating, _removeCustomRating,
+    _addImpression, _removeImpression,
   };
 
 })();

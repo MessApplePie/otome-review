@@ -294,13 +294,41 @@ function escHtml(str) {
     .replace(/"/g, '&quot;');
 }
 
+// ── Impression table ──────────────────────
+function renderImpressionTable(impressions) {
+  if (!impressions || !impressions.length) return '';
+  return `
+  <table class="impression-table">
+    <thead>
+      <tr>
+        <th style="width:15%;text-align:center">角色</th>
+        <th style="width:40%">before</th>
+        <th style="width:40%">after</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${impressions.map(imp => `
+      <tr>
+        <td style="text-align:center;vertical-align:middle;">
+          ${imp.portrait 
+            ? `<img src="${imp.portrait}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid var(--border);background:var(--bg-alt);" alt="角色">` 
+            : `<div style="width:48px;height:48px;border-radius:50%;background:var(--bg-alt);border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:1.2rem;opacity:.5;margin:0 auto;">👤</div>`
+          }
+        </td>
+        <td style="white-space:pre-wrap">${escHtml(imp.before || '')}</td>
+        <td style="white-space:pre-wrap">${escHtml(imp.after || '')}</td>
+      </tr>`).join('')}
+    </tbody>
+  </table>`;
+}
+
 // ── Exports ───────────────────────────────
 window.Components = {
   renderStars, bindStarInputs,
   progressBadge, renderTags,
   renderGameCard, renderRatingBars,
   renderGalleryStrip, openModal, closeModal,
-  renderCharCard, toggleChar,
+  renderCharCard, toggleChar, renderImpressionTable,
   confirmDelete, showToast,
   readImageFile, escHtml,
   RATING_LABELS,
