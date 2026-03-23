@@ -2,32 +2,32 @@
    DETAIL PAGE — detail.js
 ══════════════════════════════════════════ */
 
-(function() {
+(function () {
 
-function init(id) {
-  const game = DB.getGame(id);
-  if (!game) { Router.navigate('/'); return; }
-  render(game);
-}
+  function init(id) {
+    const game = DB.getGame(id);
+    if (!game) { Router.navigate('/'); return; }
+    render(game);
+  }
 
-function render(game) {
-  const page = document.getElementById('page-detail');
-  if (!page) return;
+  function render(game) {
+    const page = document.getElementById('page-detail');
+    if (!page) return;
 
-  const coverHtml = game.cover
-    ? `<img class="detail-cover" src="${game.cover}" alt="${Components.escHtml(game.title)}">`
-    : `<div class="detail-cover-placeholder">🌸</div>`;
+    const coverHtml = game.cover
+      ? `<img class="detail-cover" src="${game.cover}" alt="${Components.escHtml(game.title)}">`
+      : `<div class="detail-cover-placeholder">🌸</div>`;
 
-  const metaItems = [
-    ['游戏公司', game.company],
-    ['剧本',     game.writer],
-    ['原画',     game.illustrator],
-    ['发售年份', game.releaseDate],
-  ].filter(([,v]) => v);
+    const metaItems = [
+      ['游戏公司', game.company],
+      ['剧本', game.writer],
+      ['原画', game.illustrator],
+      ['发售年份', game.releaseDate],
+    ].filter(([, v]) => v);
 
-  const cgSrcs = (game.cgs || []).map(c => c.src);
+    const cgSrcs = (game.cgs || []).map(c => c.src);
 
-  page.innerHTML = `
+    page.innerHTML = `
   <div class="container--narrow">
     <!-- Back / actions bar -->
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px" class="detail-actions-bar">
@@ -52,13 +52,13 @@ function render(game) {
         </div>
 
         <div class="detail-meta-grid">
-          ${metaItems.map(([l,v]) => `
+          ${metaItems.map(([l, v]) => `
           <div class="detail-meta-item">
             <span class="label">${l}：</span>${Components.escHtml(v)}
           </div>`).join('')}
         </div>
 
-        ${(game.tags||[]).length ? `
+        ${(game.tags || []).length ? `
         <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">
           ${Components.renderTags(game.tags)}
         </div>` : ''}
@@ -79,21 +79,21 @@ function render(game) {
     </div>` : ''}
 
     <!-- CG Gallery -->
-    ${(game.cgs||[]).length ? `
+    ${(game.cgs || []).length ? `
     <div style="margin-bottom:32px">
       <div class="section-heading"><h2>🖼️ 游戏 CG</h2></div>
       <div class="gallery-strip" id="detail-cg-strip">
         ${game.cgs.map((cg, i) =>
-          `<img class="gallery-thumb" src="${cg.src}" alt="${Components.escHtml(cg.caption||'')}"
+      `<img class="gallery-thumb" src="${cg.src}" alt="${Components.escHtml(cg.caption || '')}"
             data-gallery-idx="${i}" loading="lazy">`
-        ).join('')}
+    ).join('')}
       </div>
     </div>` : ''}
 
     <!-- Characters -->
-    ${(game.characters||[]).length ? `
+    ${(game.characters || []).length ? `
     <div>
-      <div class="section-heading"><h2>👤 角色评测</h2></div>
+      <div class="section-heading"><h2>👤 角色</h2></div>
       <div style="display:flex;flex-direction:column;gap:14px" id="char-list">
         ${game.characters.map(c => Components.renderCharCard(c)).join('')}
       </div>
@@ -102,47 +102,47 @@ function render(game) {
     <div style="height:40px"></div>
   </div>`;
 
-  // Bind CG gallery clicks
-  const cgStrip = page.querySelector('#detail-cg-strip');
-  if (cgStrip) {
-    cgStrip.querySelectorAll('.gallery-thumb').forEach((img, i) => {
-      img.addEventListener('click', () => Components.openModal(cgSrcs, i));
+    // Bind CG gallery clicks
+    const cgStrip = page.querySelector('#detail-cg-strip');
+    if (cgStrip) {
+      cgStrip.querySelectorAll('.gallery-thumb').forEach((img, i) => {
+        img.addEventListener('click', () => Components.openModal(cgSrcs, i));
+      });
+    }
+
+    // Bind character CG clicks
+    page.querySelectorAll('[data-cg-char]').forEach(img => {
+      const charId = img.dataset.cgChar;
+      const idx = parseInt(img.dataset.cgIdx);
+      const char = (game.characters || []).find(c => c.id === charId);
+      if (char) {
+        img.addEventListener('click', () =>
+          Components.openModal(char.cgs.map(c => c.src), idx)
+        );
+      }
     });
   }
 
-  // Bind character CG clicks
-  page.querySelectorAll('[data-cg-char]').forEach(img => {
-    const charId = img.dataset.cgChar;
-    const idx    = parseInt(img.dataset.cgIdx);
-    const char   = (game.characters||[]).find(c => c.id === charId);
-    if (char) {
-      img.addEventListener('click', () =>
-        Components.openModal(char.cgs.map(c => c.src), idx)
-      );
-    }
-  });
-}
+  function exportPDF(title) {
+    const page = document.getElementById('page-detail');
+    if (!page) return;
 
-function exportPDF(title) {
-  const page = document.getElementById('page-detail');
-  if (!page) return;
+    const actionsBar = page.querySelector('.detail-actions-bar');
+    if (actionsBar) actionsBar.style.display = 'none';
 
-  const actionsBar = page.querySelector('.detail-actions-bar');
-  if (actionsBar) actionsBar.style.display = 'none';
+    const opt = {
+      margin: [10, 10],
+      filename: `${title || '游戏Review'}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
 
-  const opt = {
-    margin:       [10, 10],
-    filename:     `${title || '游戏评测'}.pdf`,
-    image:        { type: 'jpeg', quality: 0.98 },
-    html2canvas:  { scale: 2, useCORS: true },
-    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  };
+    html2pdf().set(opt).from(page).save().then(() => {
+      if (actionsBar) actionsBar.style.display = 'flex';
+    });
+  }
 
-  html2pdf().set(opt).from(page).save().then(() => {
-    if (actionsBar) actionsBar.style.display = 'flex';
-  });
-}
-
-window.DetailPage = { init, exportPDF };
+  window.DetailPage = { init, exportPDF };
 
 })();
