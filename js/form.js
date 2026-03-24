@@ -72,7 +72,7 @@
             <div class="form-group">
               <label class="form-label">游戏进度</label>
               <select id="f-progress">
-                ${['未开始', '游戏中', '自推全收集', 'HE全收集', '自推HE全收集', '全收集'].map(p =>
+                ${['未开始', '游玩中', '自推全收集', 'HE全收集', '自推HE全收集', '全收集'].map(p =>
       `<option value="${p}"${_game.progress === p ? ' selected' : ''}>${p}</option>`
     ).join('')}
               </select>

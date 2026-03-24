@@ -46,7 +46,7 @@ function bindStarInputs(container) {
 
 // ── Progress badge ────────────────────────
 function progressBadge(progress) {
-  const map = { '未开始': '', '游玩中': '--green', '已通关': '--blue', '已全收': '--yellow' };
+  const map = { '未开始': '', '游玩中': '--green', '自推全收集': '--blue', 'HE全收集': '--yellow', '自推HE全收集': '--pink', '全收集': '--purple' };
   const cls = map[progress] || '';
   return `<span class="badge badge${cls}">${progress || '未开始'}</span>`;
 }
@@ -100,24 +100,24 @@ function renderRatingBars(ratings = {}, customRatings = []) {
   const defaultBars = RATING_LABELS.map(([key, label]) => {
     const val = ratings[key] || 0;
     return `
-    <div class="rating-bar-row">
-      <span class="label">${label}</span>
-      <div class="rating-bar-bg">
-        <div class="rating-bar-fill" style="width:${val * 20}%"></div>
+    <div class="rating-bar-row" style="justify-content:flex-start; gap:16px;">
+      <span class="label" style="text-align:left; width:auto; min-width: 70px;">${label}</span>
+      <div style="display:flex; align-items:center;">
+        ${renderStars(val, { size: 'lg' })}
       </div>
-      <span class="val">${val || '-'}</span>
+      <span class="val" style="margin-left:0; font-size:1.1rem;">${val || '-'}</span>
     </div>`;
   }).join('');
 
   const customBars = customRatings.map(cr => {
     const val = cr.rating || 0;
     return `
-    <div class="rating-bar-row">
-      <span class="label">${escHtml(cr.label)}</span>
-      <div class="rating-bar-bg">
-        <div class="rating-bar-fill" style="width:${val * 20}%"></div>
+    <div class="rating-bar-row" style="justify-content:flex-start; gap:16px;">
+      <span class="label" style="text-align:left; width:auto; min-width: 70px;">${escHtml(cr.label)}</span>
+      <div style="display:flex; align-items:center;">
+        ${renderStars(val, { size: 'lg' })}
       </div>
-      <span class="val">${val || '-'}</span>
+      <span class="val" style="margin-left:0; font-size:1.1rem;">${val || '-'}</span>
     </div>`;
   }).join('');
 

@@ -118,6 +118,8 @@
 .badge--yellow { background: #faefd4; color: #a87618; }
 .badge--blue   { background: #dde9f8; color: #4568aa; }
 .badge--grey   { background: #e8e8f0; color: #5a5a72; }
+.badge--pink   { background: #fce4ec; color: #d81b60; }
+.badge--purple { background: #f3e5f5; color: #8e24aa; }
 
 /* ══════════════════════════════════════════
    STAR RATING
@@ -454,7 +456,6 @@
   margin-bottom: 16px; cursor: pointer;
 }
 .char-form-block__title { font-weight: 600; font-size: .95rem; }
-.char-form-body { }
 .char-form-portrait-row { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 14px; }
 .char-portrait-preview {
   width: 60px; height: 60px; border-radius: 50%;
@@ -523,8 +524,10 @@ select { appearance: none; cursor: pointer; }
 ══════════════════════════════════════════ */
 .progress--未开始 { background: var(--badge-bg); color: var(--badge-text); }
 .progress--游玩中 { background: #d6f0e4; color: #3a8a5e; }
-.progress--已通关 { background: #dde9f8; color: #4568aa; }
-.progress--已全收 { background: #faefd4; color: #a87618; }
+.progress--自推全收集 { background: #dde9f8; color: #4568aa; }
+.progress--HE全收集 { background: #faefd4; color: #a87618; }
+.progress--自推HE全收集 { background: #fce4ec; color: #d81b60; }
+.progress--全收集 { background: #f3e5f5; color: #8e24aa; }
 
 /* ══════════════════════════════════════════
    IMPRESSION TABLE
