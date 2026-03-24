@@ -23,6 +23,7 @@
       ['剧本', game.writer],
       ['原画', game.illustrator],
       ['发售年份', game.releaseDate],
+      ['游戏时长', game.playtime],
     ].filter(([, v]) => v);
 
     const cgSrcs = (game.cgs || []).map(c => c.src);

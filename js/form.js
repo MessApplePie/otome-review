@@ -70,6 +70,10 @@
               <input type="number" id="f-date" min="1980" max="2099" step="1" placeholder="例如：2023" value="${_game.releaseDate || ''}">
             </div>
             <div class="form-group">
+              <label class="form-label">游戏时长</label>
+              <input type="text" id="f-playtime" value="${Components.escHtml(_game.playtime)}" placeholder="例如：40h">
+            </div>
+            <div class="form-group">
               <label class="form-label">游戏进度</label>
               <select id="f-progress">
                 ${['未开始', '游玩中', '自推全收集', 'HE全收集', '自推HE全收集', '全收集'].map(p =>
@@ -641,6 +645,7 @@
     _game.writer = document.getElementById('f-writer')?.value.trim() || '';
     _game.illustrator = document.getElementById('f-illustrator')?.value.trim() || '';
     _game.releaseDate = document.getElementById('f-date')?.value || '';
+    _game.playtime = document.getElementById('f-playtime')?.value.trim() || '';
     _game.progress = document.getElementById('f-progress')?.value || '未开始';
     _game.review = document.getElementById('f-review')?.value || '';
 

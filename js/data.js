@@ -378,6 +378,7 @@ function newGame(overrides = {}) {
     writer: '',
     illustrator: '',
     releaseDate: '',
+    playtime: '',
     progress: '未开始',
     cover: '',
     ratings: { overall: 0, story: 0, characters: 0, art: 0, voice: 0, emotion: 0 },
