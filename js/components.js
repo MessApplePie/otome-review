@@ -6,10 +6,11 @@
 // ── Stars ─────────────────────────────────
 function renderStars(rating, { size = '', input = false, name = '', id = '' } = {}) {
   const cls = ['stars', size ? `stars--${size}` : '', input ? 'stars--input' : ''].join(' ').trim();
+  const svgHeart = `<svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
   if (input) {
     let html = `<span class="${cls}" data-rating-name="${name}">`;
     for (let i = 1; i <= 5; i++) {
-      html += `<span class="star${i <= (rating || 0) ? ' filled' : ''}" data-val="${i}" role="button">♥</span>`;
+      html += `<span class="star${i <= (rating || 0) ? ' filled' : ''}" data-val="${i}" role="button">${svgHeart}</span>`;
     }
     html += `<input type="hidden" name="${name}" value="${rating || 0}">`;
     html += `</span>`;
@@ -17,7 +18,7 @@ function renderStars(rating, { size = '', input = false, name = '', id = '' } = 
   } else {
     let html = `<span class="${cls}">`;
     for (let i = 1; i <= 5; i++) {
-      html += `<span class="star${i <= rating ? ' filled' : ''}">♥</span>`;
+      html += `<span class="star${i <= rating ? ' filled' : ''}">${svgHeart}</span>`;
     }
     html += `</span>`;
     return html;
@@ -311,7 +312,7 @@ function renderImpressionTable(impressions) {
       <tr>
         <td style="text-align:center;vertical-align:middle;">
           ${imp.portrait 
-            ? `<img src="${imp.portrait}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid var(--border);background:var(--bg-alt);" alt="角色">` 
+            ? `<img src="${imp.portrait}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid var(--border);background:var(--bg-alt);margin:0 auto;" alt="角色">` 
             : `<div style="width:48px;height:48px;border-radius:50%;background:var(--bg-alt);border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:1.2rem;opacity:.5;margin:0 auto;">👤</div>`
           }
         </td>

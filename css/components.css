@@ -131,6 +131,12 @@
   font-size: 1rem; cursor: default;
   color: #ddd; transition: color var(--transition);
   line-height: 1;
+  display: inline-flex; align-items: center; justify-content: center;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.star svg {
+  width: 1em; height: 1em; fill: currentColor;
 }
 .star.filled { color: var(--star-fill); }
 .star.half   { color: var(--star-fill); opacity: .55; }
